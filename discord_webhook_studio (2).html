@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discord Webhook Dual Messenger</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            discord: {
+              blurple: '#5865F2',
+              'blurple-hover': '#4752C4',
+              green: '#23a55a',
+              'green-hover': '#1a8a47',
+              red: '#f23f43',
+              yellow: '#f0b232',
+              darkest: '#1e1f22',
+              card: '#2b2d31',
+              surface: '#313338',
+              input: '#1e1f22',
+              hover: '#35373c',
+              text: '#dbdee1',
+              muted: '#949ba4',
+              heading: '#f2f3f5'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-discord-darkest text-discord-text min-h-screen flex flex-col items-center justify-center p-4 selection:bg-discord-blurple selection:text-white font-sans antialiased">
+
+  <!-- MAIN CARD CONTAINER -->
+  <main class="w-full max-w-xl bg-discord-card border border-white/10 rounded-2xl shadow-2xl p-5 sm:p-7 space-y-5 my-4">
+    
+    <!-- HEADER -->
+    <header class="flex items-center justify-between border-b border-white/5 pb-4">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-11 h-11 rounded-2xl bg-discord-blurple text-white flex items-center justify-center text-xl shadow-lg shadow-discord-blurple/30 flex-shrink-0">
+          <i class="fa-brands fa-discord"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-discord-heading tracking-tight flex items-center gap-2">
+            Discord Dual Messenger
+            <span class="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-discord-blurple/20 text-discord-blurple border border-discord-blurple/30">v2.0</span>
+          </h1>
+          <p class="text-xs text-discord-muted">Dispatch messages to T1, T2, or broadcast to both</p>
+        </div>
+      </div>
+
+      <!-- Quick status indicator pills -->
+      <div class="hidden sm:flex items-center gap-1.5 text-[11px] font-mono">
+        <span class="flex items-center gap-1 px-2 py-1 rounded-md bg-discord-input border border-white/5 text-discord-muted" title="Target 1 pre-configured">
+          <span class="w-2 h-2 rounded-full bg-discord-green inline-block animate-pulse"></span>
+          T1
+        </span>
+        <span class="flex items-center gap-1 px-2 py-1 rounded-md bg-discord-input border border-white/5 text-discord-muted" title="Target 2 pre-configured">
+          <span class="w-2 h-2 rounded-full bg-discord-green inline-block animate-pulse"></span>
+          T2
+        </span>
+      </div>
+    </header>
+
+    <!-- TARGET SELECTOR BUTTONS -->
+    <section>
+      <label class="block text-xs font-semibold uppercase tracking-wider text-discord-muted mb-2">
+        Destination Target
+      </label>
+      <div class="grid grid-cols-3 gap-2 p-1 bg-discord-input rounded-xl border border-white/5" role="radiogroup" aria-label="Webhook destination">
+        
+        <!-- Target 1 -->
+        <button 
+          type="button" 
+          id="btnTargetT1"
+          onclick="setTarget('t1')"
+          class="target-btn flex flex-col items-center justify-center py-2.5 px-3 rounded-lg text-xs font-semibold transition cursor-pointer text-discord-muted hover:text-discord-heading hover:bg-white/5"
+          role="radio"
+          aria-checked="false"
+        >
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane text-[11px]"></i>
+            <span>Target 1</span>
+          </div>
+          <span class="text-[10px] font-mono font-normal text-discord-muted mt-0.5">T1 Only</span>
+        </button>
+
+        <!-- Target 2 -->
+        <button 
+          type="button" 
+          id="btnTargetT2"
+          onclick="setTarget('t2')"
+          class="target-btn flex flex-col items-center justify-center py-2.5 px-3 rounded-lg text-xs font-semibold transition cursor-pointer text-discord-muted hover:text-discord-heading hover:bg-white/5"
+          role="radio"
+          aria-checked="false"
+        >
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-paper-plane text-[11px]"></i>
+            <span>Target 2</span>
+          </div>
+          <span class="text-[10px] font-mono font-normal text-discord-muted mt-0.5">T2 Only</span>
+        </button>
+
+        <!-- Send to Both -->
+        <button 
+          type="button" 
+          id="btnTargetBoth"
+          onclick="setTarget('both')"
+          class="target-btn flex flex-col items-center justify-center py-2.5 px-3 rounded-lg text-xs font-semibold transition cursor-pointer bg-discord-blurple text-white shadow-md shadow-discord-blurple/25"
+          role="radio"
+          aria-checked="true"
+        >
+          <div class="flex items-center gap-1.5">
+            <i class="fa-solid fa-tower-broadcast text-[11px]"></i>
+            <span>Both (T1 + T2)</span>
+          </div>
+          <span class="text-[10px] font-mono font-normal text-white/80 mt-0.5">Dual Broadcast</span>
+        </button>
+
+      </div>
+    </section>
+
+    <!-- NOTIFICATION / STATUS BANNER -->
+    <div id="statusAlert" class="hidden p-3.5 rounded-xl text-xs font-medium flex items-start gap-2.5 transition duration-200">
+      <i id="statusIcon" class="fa-solid fa-circle-check text-base mt-0.5"></i>
+      <div class="flex-1 space-y-1">
+        <div id="statusMessage" class="break-words font-semibold"></div>
+        <div id="statusDetails" class="text-[11px] opacity-90 font-mono space-y-0.5 hidden"></div>
+      </div>
+      <button onclick="dismissStatus()" class="text-white/60 hover:text-white transition p-1" aria-label="Close notification">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- MESSAGE FORM -->
+    <form id="messageForm" onsubmit="handleSendMessage(event)" class="space-y-4">
+      
+      <!-- MESSAGE INPUT -->
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <label for="messageContent" class="text-xs font-semibold uppercase tracking-wider text-discord-heading flex items-center gap-1">
+            <span>Message</span>
+            <span class="text-discord-red">*</span>
+          </label>
+          <span class="text-[11px] text-discord-muted">Markdown enabled</span>
+        </div>
+        <textarea 
+          id="messageContent" 
+          rows="5" 
+          maxlength="2000"
+          required 
+          autofocus
+          placeholder="Type your message here... (e.g., Hello team! Use **bold**, *italics*, `code`, or mentions)"
+          class="w-full bg-discord-input text-discord-heading border border-white/10 rounded-xl p-3.5 text-sm focus:outline-none focus:border-discord-blurple focus:ring-1 focus:ring-discord-blurple transition placeholder-discord-muted/60 leading-relaxed resize-y font-sans"
+          onkeydown="handleTextareaKeydown(event)"
+          oninput="updateCharCount()"
+        ></textarea>
+        <div class="flex items-center justify-between text-[11px] text-discord-muted mt-1 px-1">
+          <div class="flex items-center gap-1.5">
+            <span>Press</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-discord-input border border-white/10 text-discord-text text-[10px] font-mono">Ctrl</kbd>
+            <span>+</span>
+            <kbd class="px-1.5 py-0.5 rounded bg-discord-input border border-white/10 text-discord-text text-[10px] font-mono">Enter</kbd>
+            <span>to send</span>
+          </div>
+          <span id="charCount" class="font-mono">0 / 2000</span>
+        </div>
+      </div>
+
+      <!-- SENDER OVERRIDES & OPTIONS -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+        <!-- Optional Bot Name -->
+        <div>
+          <label for="customUsername" class="block text-xs font-medium text-discord-muted mb-1">
+            Sender Name <span class="text-[11px] opacity-75">(Optional)</span>
+          </label>
+          <input 
+            type="text" 
+            id="customUsername" 
+            maxlength="80"
+            placeholder="Default webhook name" 
+            class="w-full bg-discord-input text-discord-heading border border-white/10 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-discord-blurple focus:ring-1 focus:ring-discord-blurple transition placeholder-discord-muted/50"
+          >
+        </div>
+
+        <!-- Toggle: Clear text after send -->
+        <div class="flex items-center sm:justify-end pt-1 sm:pt-4">
+          <label class="flex items-center gap-2 cursor-pointer select-none text-xs text-discord-muted hover:text-discord-heading transition">
+            <input 
+              type="checkbox" 
+              id="clearAfterSend" 
+              checked 
+              class="w-4 h-4 rounded bg-discord-input border border-white/20 text-discord-blurple focus:ring-0 focus:ring-offset-0 cursor-pointer accent-discord-blurple"
+            >
+            <span>Clear message after send</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- COLLAPSIBLE WEBHOOK URL CONFIGURATION -->
+      <div class="pt-1">
+        <details class="group bg-discord-input/60 border border-white/5 rounded-xl overflow-hidden text-xs">
+          <summary class="cursor-pointer px-3.5 py-2.5 text-discord-muted hover:text-discord-heading flex items-center justify-between font-medium select-none transition">
+            <span class="flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-discord-blurple text-[11px]"></i>
+              <span>Configured Webhook Endpoints (T1 &amp; T2)</span>
+            </span>
+            <i class="fa-solid fa-chevron-down text-[10px] transition group-open:rotate-180"></i>
+          </summary>
+          
+          <div class="p-3.5 border-t border-white/5 space-y-3.5">
+            <!-- Target 1 URL -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-semibold text-discord-heading flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-discord-green"></span>
+                  Target 1 (T1) URL
+                </span>
+                <button type="button" onclick="resetWebhook('t1')" class="text-discord-muted hover:text-discord-text underline text-[10px]">Reset T1</button>
+              </div>
+              <div class="relative flex items-center">
+                <input 
+                  type="password" 
+                  id="webhookUrlT1" 
+                  value="https://discord.com/api/webhooks/1563266951516524604/JQZDxzNfvsOT6OsU1fTM1JkjMRHeuZJGrGRdhQjMbiZOS8XtlSXmSc-hM8fpXoxI0Qwu"
+                  class="w-full bg-discord-card text-discord-text font-mono text-[11px] border border-white/10 rounded-lg px-3 py-2 pr-16 focus:outline-none focus:border-discord-blurple"
+                >
+                <button 
+                  type="button" 
+                  onclick="togglePasswordVisibility('webhookUrlT1', 'eyeT1')" 
+                  class="absolute right-2 px-2 py-1 text-discord-muted hover:text-discord-heading transition text-xs" 
+                  title="Toggle visibility"
+                >
+                  <i id="eyeT1" class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Target 2 URL -->
+            <div class="space-y-1">
+              <div class="flex items-center justify-between text-[11px]">
+                <span class="font-semibold text-discord-heading flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full bg-discord-green"></span>
+                  Target 2 (T2) URL
+                </span>
+                <button type="button" onclick="resetWebhook('t2')" class="text-discord-muted hover:text-discord-text underline text-[10px]">Reset T2</button>
+              </div>
+              <div class="relative flex items-center">
+                <input 
+                  type="password" 
+                  id="webhookUrlT2" 
+                  value="https://discord.com/api/webhooks/1563269037025402894/zL2TLbfI7OkbfkpCoFxSUeDNgiYy8oIHN9gRdA2SDBcNWTjR9G45qYgvGBlfinMOncTm"
+                  class="w-full bg-discord-card text-discord-text font-mono text-[11px] border border-white/10 rounded-lg px-3 py-2 pr-16 focus:outline-none focus:border-discord-blurple"
+                >
+                <button 
+                  type="button" 
+                  onclick="togglePasswordVisibility('webhookUrlT2', 'eyeT2')" 
+                  class="absolute right-2 px-2 py-1 text-discord-muted hover:text-discord-heading transition text-xs" 
+                  title="Toggle visibility"
+                >
+                  <i id="eyeT2" class="fa-solid fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <p class="text-[11px] text-discord-muted/80">Both webhooks are pre-loaded and ready. You can test or modify endpoints as needed.</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- SEND BUTTON -->
+      <div class="pt-2">
+        <button 
+          type="submit" 
+          id="sendButton" 
+          class="w-full py-3.5 px-6 rounded-xl bg-discord-blurple hover:bg-discord-blurple-hover active:scale-[0.99] text-white font-semibold text-sm shadow-lg shadow-discord-blurple/25 flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        >
+          <i id="btnIcon" class="fa-solid fa-tower-broadcast text-xs"></i>
+          <span id="btnText">Broadcast to Both (T1 + T2)</span>
+        </button>
+      </div>
+
+    </form>
+
+  </main>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // Default Webhook endpoints
+    const DEFAULT_T1 = "https://discord.com/api/webhooks/1563266951516524604/JQZDxzNfvsOT6OsU1fTM1JkjMRHeuZJGrGRdhQjMbiZOS8XtlSXmSc-hM8fpXoxI0Qwu";
+    const DEFAULT_T2 = "https://discord.com/api/webhooks/1563269037025402894/zL2TLbfI7OkbfkpCoFxSUeDNgiYy8oIHN9gRdA2SDBcNWTjR9G45qYgvGBlfinMOncTm";
+
+    // Current target state: 't1', 't2', or 'both'
+    let currentTarget = 'both';
+
+    // Set Active Target
+    function setTarget(target) {
+      currentTarget = target;
+      
+      const btnT1 = document.getElementById('btnTargetT1');
+      const btnT2 = document.getElementById('btnTargetT2');
+      const btnBoth = document.getElementById('btnTargetBoth');
+      const sendBtnText = document.getElementById('btnText');
+      const sendBtnIcon = document.getElementById('btnIcon');
+
+      // Reset all buttons to unselected state
+      const unselectedClasses = ['text-discord-muted', 'hover:text-discord-heading', 'hover:bg-white/5'];
+      const selectedClasses = ['bg-discord-blurple', 'text-white', 'shadow-md', 'shadow-discord-blurple/25'];
+
+      [btnT1, btnT2, btnBoth].forEach(btn => {
+        btn.classList.remove(...selectedClasses);
+        btn.classList.add(...unselectedClasses);
+        btn.setAttribute('aria-checked', 'false');
+      });
+
+      // Apply selected styling and update submit button label
+      if (target === 't1') {
+        btnT1.classList.remove(...unselectedClasses);
+        btnT1.classList.add(...selectedClasses);
+        btnT1.setAttribute('aria-checked', 'true');
+        sendBtnText.innerText = 'Send to Target 1 (T1)';
+        sendBtnIcon.className = 'fa-solid fa-paper-plane text-xs';
+      } else if (target === 't2') {
+        btnT2.classList.remove(...unselectedClasses);
+        btnT2.classList.add(...selectedClasses);
+        btnT2.setAttribute('aria-checked', 'true');
+        sendBtnText.innerText = 'Send to Target 2 (T2)';
+        sendBtnIcon.className = 'fa-solid fa-paper-plane text-xs';
+      } else {
+        btnBoth.classList.remove(...unselectedClasses);
+        btnBoth.classList.add(...selectedClasses);
+        btnBoth.setAttribute('aria-checked', 'true');
+        sendBtnText.innerText = 'Broadcast to Both (T1 + T2)';
+        sendBtnIcon.className = 'fa-solid fa-tower-broadcast text-xs';
+      }
+    }
+
+    // Reset webhook to default
+    function resetWebhook(which) {
+      if (which === 't1') {
+        document.getElementById('webhookUrlT1').value = DEFAULT_T1;
+      } else if (which === 't2') {
+        document.getElementById('webhookUrlT2').value = DEFAULT_T2;
+      }
+    }
+
+    // Toggle Webhook password visibility
+    function togglePasswordVisibility(inputId, iconId) {
+      const input = document.getElementById(inputId);
+      const icon = document.getElementById(iconId);
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+      } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+      }
+    }
+
+    // Character counter
+    function updateCharCount() {
+      const textarea = document.getElementById('messageContent');
+      const counter = document.getElementById('charCount');
+      const len = textarea.value.length;
+      counter.innerText = `${len} / 2000`;
+      if (len >= 2000) {
+        counter.classList.add('text-discord-red');
+      } else {
+        counter.classList.remove('text-discord-red');
+      }
+    }
+
+    // Ctrl + Enter or Cmd + Enter shortcut
+    function handleTextareaKeydown(event) {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        document.getElementById('messageForm').requestSubmit();
+      }
+    }
+
+    // Show Notification Alert
+    function showAlert(title, detailsList = [], statusType = 'success') {
+      const alert = document.getElementById('statusAlert');
+      const icon = document.getElementById('statusIcon');
+      const msg = document.getElementById('statusMessage');
+      const details = document.getElementById('statusDetails');
+
+      alert.classList.remove('hidden', 'bg-emerald-500/15', 'text-emerald-400', 'border-emerald-500/30', 'bg-red-500/15', 'text-red-400', 'border-red-500/30', 'bg-amber-500/15', 'text-amber-400', 'border-amber-500/30', 'border');
+
+      if (statusType === 'success') {
+        alert.classList.add('bg-emerald-500/15', 'text-emerald-400', 'border', 'border-emerald-500/30');
+        icon.className = 'fa-solid fa-circle-check text-base text-emerald-400 mt-0.5';
+      } else if (statusType === 'warning') {
+        alert.classList.add('bg-amber-500/15', 'text-amber-400', 'border', 'border-amber-500/30');
+        icon.className = 'fa-solid fa-triangle-exclamation text-base text-amber-400 mt-0.5';
+      } else {
+        alert.classList.add('bg-red-500/15', 'text-red-400', 'border', 'border-red-500/30');
+        icon.className = 'fa-solid fa-circle-xmark text-base text-red-400 mt-0.5';
+      }
+
+      msg.innerText = title;
+
+      if (detailsList && detailsList.length > 0) {
+        details.innerHTML = detailsList.map(item => `<div>• ${item}</div>`).join('');
+        details.classList.remove('hidden');
+      } else {
+        details.classList.add('hidden');
+      }
+
+      alert.classList.remove('hidden');
+    }
+
+    function dismissStatus() {
+      document.getElementById('statusAlert').classList.add('hidden');
+    }
+
+    // Audio chime using Web Audio API
+    function playAudioFeedback(type) {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        const ctx = new AudioContext();
+        const now = ctx.currentTime;
+
+        if (type === 'success') {
+          // Cheerful two-tone chime
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const gain = ctx.createGain();
+
+          osc1.type = 'sine';
+          osc2.type = 'sine';
+          osc1.frequency.setValueAtTime(523.25, now); // C5
+          osc2.frequency.setValueAtTime(783.99, now + 0.09); // G5
+
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc1.start(now);
+          osc1.stop(now + 0.09);
+          osc2.start(now + 0.09);
+          osc2.stop(now + 0.35);
+        } else {
+          // Error tone
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(220, now);
+          osc.frequency.linearRampToValueAtTime(180, now + 0.25);
+
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+
+          osc.start(now);
+          osc.stop(now + 0.25);
+        }
+      } catch (e) {
+        // Audio might be blocked by browser policy
+      }
+    }
+
+    // Helper: Send single webhook
+    async function sendToWebhook(targetName, url, payload) {
+      if (!url || !url.startsWith('http')) {
+        return { target: targetName, ok: false, status: 0, message: 'Invalid URL provided' };
+      }
+
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (response.status === 204 || response.ok) {
+          return { target: targetName, ok: true, status: response.status, message: 'Delivered (HTTP 204)' };
+        } else if (response.status === 429) {
+          const body = await response.json().catch(() => ({}));
+          const retryAfter = Math.ceil(body.retry_after || 5);
+          return { target: targetName, ok: false, status: 429, message: `Rate limited (retry in ${retryAfter}s)` };
+        } else if (response.status === 404) {
+          return { target: targetName, ok: false, status: 404, message: 'Webhook not found (404)' };
+        } else {
+          return { target: targetName, ok: false, status: response.status, message: `Discord HTTP error ${response.status}` };
+        }
+      } catch (err) {
+        return { target: targetName, ok: false, status: 0, message: err.message || 'Network / CORS error' };
+      }
+    }
+
+    // Main form submit handler
+    async function handleSendMessage(event) {
+      event.preventDefault();
+
+      const messageContent = document.getElementById('messageContent').value.trim();
+      const customUsername = document.getElementById('customUsername').value.trim();
+      const clearAfterSend = document.getElementById('clearAfterSend').checked;
+      const urlT1 = document.getElementById('webhookUrlT1').value.trim();
+      const urlT2 = document.getElementById('webhookUrlT2').value.trim();
+
+      if (!messageContent) {
+        showAlert('Please enter a message before sending.', [], 'error');
+        playAudioFeedback('error');
+        return;
+      }
+
+      // Build Discord payload
+      const payload = { content: messageContent };
+      if (customUsername) {
+        payload.username = customUsername;
+      }
+
+      const btn = document.getElementById('sendButton');
+      const btnIcon = document.getElementById('btnIcon');
+      const btnText = document.getElementById('btnText');
+
+      // Loading state
+      btn.disabled = true;
+      const originalText = btnText.innerText;
+      btnIcon.className = 'fa-solid fa-spinner animate-spin text-xs';
+      btnText.innerText = 'Dispatching message...';
+      dismissStatus();
+
+      // Determine targets
+      const requests = [];
+      if (currentTarget === 't1' || currentTarget === 'both') {
+        requests.push(sendToWebhook('Target 1 (T1)', urlT1, payload));
+      }
+      if (currentTarget === 't2' || currentTarget === 'both') {
+        requests.push(sendToWebhook('Target 2 (T2)', urlT2, payload));
+      }
+
+      try {
+        const results = await Promise.all(requests);
+        const allSuccess = results.every(r => r.ok);
+        const anySuccess = results.some(r => r.ok);
+        const details = results.map(r => `${r.target}: ${r.message}`);
+
+        if (allSuccess) {
+          const successHeadline = results.length > 1 
+            ? 'Broadcasted to both T1 and T2 successfully!' 
+            : `Delivered to ${results[0].target} successfully!`;
+
+          showAlert(successHeadline, details, 'success');
+          playAudioFeedback('success');
+
+          if (clearAfterSend) {
+            document.getElementById('messageContent').value = '';
+            updateCharCount();
+          }
+        } else if (anySuccess) {
+          showAlert('Partial delivery notice: One target failed', details, 'warning');
+          playAudioFeedback('error');
+        } else {
+          showAlert('Delivery failed! Message could not be sent', details, 'error');
+          playAudioFeedback('error');
+        }
+      } catch (fatalError) {
+        showAlert(`Unexpected error: ${fatalError.message}`, [], 'error');
+        playAudioFeedback('error');
+      } finally {
+        btn.disabled = false;
+        btnText.innerText = originalText;
+        if (currentTarget === 'both') {
+          btnIcon.className = 'fa-solid fa-tower-broadcast text-xs';
+        } else {
+          btnIcon.className = 'fa-solid fa-paper-plane text-xs';
+        }
+      }
+    }
+
+    // Initialize character counter
+    updateCharCount();
+  </script>
+
+</body>
+</html>
